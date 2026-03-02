@@ -1,0 +1,37 @@
+{
+  "name": "nightscout-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for Nightscout — real-time CGM data, treatments, statistics, and analytics for AI assistants",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "nightscout-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "nightscout",
+    "mcp",
+    "cgm",
+    "glucose",
+    "diabetes",
+    "model-context-protocol"
+  ],
+  "author": "Volodymyr",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
