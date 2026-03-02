@@ -352,5 +352,6 @@ npm run build
 ---
 
 <p align="center">
-  Built with 💉 for the <a href="https://nightscout.github.io/">#WeAreNotWaiting</a> community
+  🇺🇦 Made in Ukraine for the civilized world.<br/>
+  <sub>Orcs don't qualify as civilized. Deal with it. 🧌🚫</sub>
 </p>
