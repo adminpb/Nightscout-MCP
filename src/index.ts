@@ -7,6 +7,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadConfig } from "./config.js";
 import { NightscoutClient } from "./client.js";
+import { z } from "zod";
 
 // Import tools
 import * as getCurrentGlucose from "./tools/get_current_glucose.js";
@@ -42,327 +43,51 @@ const server = new McpServer({
   description: "MCP server for Nightscout CGM data — glucose readings, treatments, statistics, and analytics",
 });
 
-// ===== REGISTER TOOLS =====
-
-server.tool(
-  getCurrentGlucose.definition.name,
-  getCurrentGlucose.definition.description,
-  getCurrentGlucose.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const result = await getCurrentGlucose.execute(client, config, params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+// Helper: register tool with Zod schema shape instead of JSON
+function reg(mod: {
+  definition: { name: string; description: string };
+  schema: { shape: Record<string, unknown>; parse: (v: unknown) => unknown };
+  execute: (client: NightscoutClient, config: ReturnType<typeof loadConfig>, params: any) => Promise<unknown>;
+}) {
+  server.tool(
+    mod.definition.name,
+    mod.definition.description,
+    mod.schema.shape,
+    async (params: Record<string, unknown>) => {
+      try {
+        const parsed = mod.schema.parse(params);
+        const result = await mod.execute(client, config, parsed);
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (error) {
+        return { content: [{ type: "text" as const, text: `Error: ${(error as Error).message}` }], isError: true };
+      }
     }
-  }
-);
+  );
+}
 
-server.tool(
-  getGlucoseHistory.definition.name,
-  getGlucoseHistory.definition.description,
-  getGlucoseHistory.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = getGlucoseHistory.schema.parse(params);
-      const result = await getGlucoseHistory.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
+// ===== REGISTER ALL 21 TOOLS =====
 
-server.tool(
-  getStatistics.definition.name,
-  getStatistics.definition.description,
-  getStatistics.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = getStatistics.schema.parse(params);
-      const result = await getStatistics.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  getTreatments.definition.name,
-  getTreatments.definition.description,
-  getTreatments.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = getTreatments.schema.parse(params);
-      const result = await getTreatments.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  getProfile.definition.name,
-  getProfile.definition.description,
-  getProfile.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const result = await getProfile.execute(client, config, params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  getDeviceStatus.definition.name,
-  getDeviceStatus.definition.description,
-  getDeviceStatus.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = getDeviceStatus.schema.parse(params);
-      const result = await getDeviceStatus.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  getDailyReport.definition.name,
-  getDailyReport.definition.description,
-  getDailyReport.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = getDailyReport.schema.parse(params);
-      const result = await getDailyReport.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  detectPatterns.definition.name,
-  detectPatterns.definition.description,
-  detectPatterns.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = detectPatterns.schema.parse(params);
-      const result = await detectPatterns.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  addTreatment.definition.name,
-  addTreatment.definition.description,
-  addTreatment.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = addTreatment.schema.parse(params);
-      const result = await addTreatment.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  addNote.definition.name,
-  addNote.definition.description,
-  addNote.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = addNote.schema.parse(params);
-      const result = await addNote.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-// --- High priority: compare, find, glucose_at_time ---
-
-server.tool(
-  comparePeriods.definition.name,
-  comparePeriods.definition.description,
-  comparePeriods.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = comparePeriods.schema.parse(params);
-      const result = await comparePeriods.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  findEvents.definition.name,
-  findEvents.definition.description,
-  findEvents.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = findEvents.schema.parse(params);
-      const result = await findEvents.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  glucoseAtTime.definition.name,
-  glucoseAtTime.definition.description,
-  glucoseAtTime.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = glucoseAtTime.schema.parse(params);
-      const result = await glucoseAtTime.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-// --- Medium priority: meal analysis, overnight, export ---
-
-server.tool(
-  analyzeMeal.definition.name,
-  analyzeMeal.definition.description,
-  analyzeMeal.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = analyzeMeal.schema.parse(params);
-      const result = await analyzeMeal.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  overnightAnalysis.definition.name,
-  overnightAnalysis.definition.description,
-  overnightAnalysis.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = overnightAnalysis.schema.parse(params);
-      const result = await overnightAnalysis.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  exportCsv.definition.name,
-  exportCsv.definition.description,
-  exportCsv.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = exportCsv.schema.parse(params);
-      const result = await exportCsv.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-// --- Lower priority: a1c estimator ---
-
-server.tool(
-  a1cEstimator.definition.name,
-  a1cEstimator.definition.description,
-  a1cEstimator.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = a1cEstimator.schema.parse(params);
-      const result = await a1cEstimator.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-// --- Smart analytics ---
-
-server.tool(
-  weeklyComparison.definition.name,
-  weeklyComparison.definition.description,
-  weeklyComparison.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const result = await weeklyComparison.execute(client, config, params);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  insulinSensitivityCheck.definition.name,
-  insulinSensitivityCheck.definition.description,
-  insulinSensitivityCheck.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = insulinSensitivityCheck.schema.parse(params);
-      const result = await insulinSensitivityCheck.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  carbRatioCheck.definition.name,
-  carbRatioCheck.definition.description,
-  carbRatioCheck.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = carbRatioCheck.schema.parse(params);
-      const result = await carbRatioCheck.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
-
-server.tool(
-  compressionLowAnalysis.definition.name,
-  compressionLowAnalysis.definition.description,
-  compressionLowAnalysis.definition.inputSchema.properties,
-  async (params) => {
-    try {
-      const parsed = compressionLowAnalysis.schema.parse(params);
-      const result = await compressionLowAnalysis.execute(client, config, parsed);
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    } catch (error) {
-      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
-    }
-  }
-);
+reg(getCurrentGlucose);
+reg(getGlucoseHistory);
+reg(getStatistics);
+reg(getTreatments);
+reg(getProfile);
+reg(getDeviceStatus);
+reg(getDailyReport);
+reg(detectPatterns);
+reg(addTreatment);
+reg(addNote);
+reg(comparePeriods);
+reg(findEvents);
+reg(glucoseAtTime);
+reg(analyzeMeal);
+reg(overnightAnalysis);
+reg(exportCsv);
+reg(a1cEstimator);
+reg(weeklyComparison);
+reg(insulinSensitivityCheck);
+reg(carbRatioCheck);
+reg(compressionLowAnalysis);
 
 // ===== REGISTER RESOURCES =====
 
@@ -436,7 +161,7 @@ server.prompt(
 server.prompt(
   "meal_analysis",
   "Analyze how a recent meal affected glucose levels",
-  { meal_time: { description: "Approximate time of the meal (e.g., '12:30' or '2 hours ago')", required: false } },
+  { meal_time: z.string().optional().describe("Approximate time of the meal (e.g., '12:30' or '2 hours ago')") },
   async ({ meal_time }) => ({
     messages: [{
       role: "user" as const,
@@ -457,7 +182,7 @@ server.prompt(
       role: "user" as const,
       content: {
         type: "text" as const,
-        text: "Generate a weekly glucose report. Use get_statistics with hours=168. Compare against standard targets: TIR ≥ 70%, time below range < 4%, CV < 36%. Identify trends and provide specific, actionable recommendations.",
+        text: "Generate a weekly glucose report. Use get_statistics with hours=168. Compare against standard targets: TIR >= 70%, time below range < 4%, CV < 36%. Identify trends and provide specific, actionable recommendations.",
       },
     }],
   })
@@ -483,7 +208,7 @@ server.prompt(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error(`🩸 Nightscout MCP server running`);
+  console.error("Nightscout MCP server running");
   console.error(`   URL: ${config.url}`);
   console.error(`   Units: ${config.units}`);
   console.error(`   Mode: ${config.readOnly ? "read-only" : "read-write"}`);
