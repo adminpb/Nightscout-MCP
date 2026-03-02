@@ -16,6 +16,9 @@ import * as getTreatments from "./tools/get_treatments.js";
 import * as getProfile from "./tools/get_profile.js";
 import * as getDeviceStatus from "./tools/get_device_status.js";
 import * as getDailyReport from "./tools/get_daily_report.js";
+import * as detectPatterns from "./tools/detect_patterns.js";
+import * as addTreatment from "./tools/add_treatment.js";
+import * as addNote from "./tools/add_note.js";
 
 // Load config and create client
 const config = loadConfig();
@@ -24,7 +27,7 @@ const client = new NightscoutClient(config);
 // Create MCP server
 const server = new McpServer({
   name: "nightscout-mcp",
-  version: "0.1.0",
+  version: "0.2.0",
   description: "MCP server for Nightscout CGM data — glucose readings, treatments, statistics, and analytics",
 });
 
@@ -126,6 +129,51 @@ server.tool(
     try {
       const parsed = getDailyReport.schema.parse(params);
       const result = await getDailyReport.execute(client, config, parsed);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  detectPatterns.definition.name,
+  detectPatterns.definition.description,
+  detectPatterns.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const parsed = detectPatterns.schema.parse(params);
+      const result = await detectPatterns.execute(client, config, parsed);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  addTreatment.definition.name,
+  addTreatment.definition.description,
+  addTreatment.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const parsed = addTreatment.schema.parse(params);
+      const result = await addTreatment.execute(client, config, parsed);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  addNote.definition.name,
+  addNote.definition.description,
+  addNote.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const parsed = addNote.schema.parse(params);
+      const result = await addNote.execute(client, config, parsed);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     } catch (error) {
       return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };

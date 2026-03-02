@@ -1,7 +1,7 @@
 {
   "name": "nightscout-mcp",
-  "version": "0.1.0",
-  "description": "Model Context Protocol server for Nightscout — real-time CGM data, treatments, statistics, and analytics for AI assistants",
+  "version": "0.2.0",
+  "description": "Model Context Protocol server for Nightscout — real-time CGM data, treatments, statistics, pattern detection, and analytics for AI assistants",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -19,10 +19,22 @@
     "cgm",
     "glucose",
     "diabetes",
-    "model-context-protocol"
+    "model-context-protocol",
+    "continuous-glucose-monitor",
+    "t1d",
+    "t2d",
+    "insulin"
   ],
-  "author": "Volodymyr",
-  "license": "MIT",
+  "author": "adminpb <adminpb@ukr.net>",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adminpb/Nightscout-MCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adminpb/Nightscout-MCP/issues"
+  },
+  "homepage": "https://github.com/adminpb/Nightscout-MCP#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "zod": "^3.23.0"

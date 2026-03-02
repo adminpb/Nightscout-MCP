@@ -1,10 +1,11 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/MCP-Nightscout-00c853?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMyIvPjxwYXRoIGQ9Ik0xMiAyYTEwIDEwIDAgMSAwIDAgMjAgMTAgMTAgMCAwIDAgMC0yMHptMCAyYTggOCAwIDEgMSAwIDE2IDggOCAwIDAgMSAwLTE2eiIvPjwvc3ZnPg==&logoColor=white" alt="Nightscout MCP" />
+  <img src="https://img.shields.io/badge/MCP-Nightscout-00c853?style=for-the-badge&logoColor=white" alt="Nightscout MCP" />
   <br/>
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Node.js-≥18-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" />
+  <img src="https://img.shields.io/badge/License-GPL%20v3-blue?style=flat-square" alt="GPL v3 License" />
   <img src="https://img.shields.io/badge/i18n-EN%20%7C%20UK-ffd700?style=flat-square" alt="Localization" />
+  <img src="https://img.shields.io/github/v/release/adminpb/Nightscout-MCP?style=flat-square&color=00c853" alt="Release" />
 </p>
 
 <h1 align="center">🩸 Nightscout MCP Server</h1>
@@ -12,7 +13,7 @@
 <p align="center">
   <strong>Connect your Nightscout CGM data to any AI assistant via the Model Context Protocol.</strong>
   <br/>
-  Real-time glucose · Treatments · Statistics · Analytics · Multi-language
+  Real-time glucose · Treatments · Statistics · Pattern detection · Analytics · i18n
 </p>
 
 <p align="center">
@@ -27,11 +28,11 @@
 
 ## What is this?
 
-**Nightscout MCP** is a [Model Context Protocol](https://modelcontextprotocol.io/) server that bridges your [Nightscout](https://nightscout.github.io/) CGM instance with AI assistants. Ask questions about your glucose data in natural language — the AI gets structured access to your readings, treatments, profiles, and statistics.
+**Nightscout MCP** is a [Model Context Protocol](https://modelcontextprotocol.io/) server that bridges your [Nightscout](https://nightscout.github.io/) CGM instance with AI assistants. Ask questions about your glucose data in natural language — the AI gets structured access to your readings, treatments, profiles, statistics, and pattern analysis.
 
 > *"What's my TIR for the past week?"*
 > *"How did that pizza affect my glucose?"*
-> *"Show all lows in the last 3 days"*
+> *"Detect patterns in my overnight readings"*
 > *"Compare training days vs rest days"*
 
 Works with any MCP-compatible client.
@@ -42,8 +43,8 @@ Works with any MCP-compatible client.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/YOUR_USERNAME/nightscout-mcp.git
-cd nightscout-mcp
+git clone https://github.com/adminpb/Nightscout-MCP.git
+cd Nightscout-MCP
 npm install
 
 # 2. Build
@@ -77,15 +78,32 @@ Add to your MCP client config (e.g. `claude_desktop_config.json`):
 
 ## 🔧 Tools
 
+### Reading Data
+
 | Tool | Description |
 |:-----|:------------|
-| **`get_current_glucose`** | Latest glucose reading with trend arrow ↗, delta, age, and status |
+| **`get_current_glucose`** | Latest glucose with trend arrow ↗, delta, age, and status |
 | **`get_glucose_history`** | SGV entries for any time period — hours lookback or exact date range |
-| **`get_statistics`** | TIR, average glucose, estimated HbA1c, GMI, SD, CV, time-in-ranges |
 | **`get_treatments`** | Insulin boluses, carb entries, notes, exercise — with summaries |
 | **`get_profile`** | Active profile: ISF, ICR, basal rates, target ranges, DIA |
 | **`get_device_status`** | Pump/sensor/loop status, IOB, COB, battery, predictions |
+
+### Analytics
+
+| Tool | Description |
+|:-----|:------------|
+| **`get_statistics`** | TIR, average glucose, estimated HbA1c, GMI, SD, CV, time-in-ranges |
 | **`get_daily_report`** | Full day summary: glucose stats + treatments + notable events |
+| **`detect_patterns`** | Automatic pattern recognition: overnight lows, dawn phenomenon, post-meal spikes, day-to-day variability |
+
+### Writing Data
+
+| Tool | Description |
+|:-----|:------------|
+| **`add_treatment`** | Add insulin, carbs, exercise, site change, or any treatment entry |
+| **`add_note`** | Quick timestamped note — meals, symptoms, activities |
+
+> Write tools require `NIGHTSCOUT_READONLY=false`.
 
 ### 📋 Prompts
 
@@ -168,7 +186,10 @@ src/
     ├── get_treatments.ts
     ├── get_profile.ts
     ├── get_device_status.ts
-    └── get_daily_report.ts
+    ├── get_daily_report.ts
+    ├── detect_patterns.ts
+    ├── add_treatment.ts
+    └── add_note.ts
 ```
 
 ---
@@ -183,8 +204,11 @@ Once connected, you can ask your AI assistant:
 "Analyze how coffee with kefir spiked my glucose"
 "Give me a daily report for yesterday"
 "What were my lows this week?"
+"Do I have a dawn phenomenon?"
+"Detect patterns in my last 14 days"
 "Compare my glucose on workout days vs rest days"
 "Are my basal rates set correctly based on overnight patterns?"
+"Log 45g carbs and 4U insulin for lunch"
 ```
 
 ---
@@ -194,16 +218,22 @@ Once connected, you can ask your AI assistant:
 - [x] Core tools: glucose, treatments, statistics, profiles, device status
 - [x] Daily reports with notable events
 - [x] Localization (EN / UK)
-- [ ] `detect_patterns` — automatic pattern recognition (night lows, post-meal spikes)
-- [ ] `add_treatment` / `add_note` — write operations with confirmation
+- [x] `detect_patterns` — overnight lows, dawn phenomenon, post-meal spikes, variability
+- [x] `add_treatment` / `add_note` — write operations
 - [ ] npm package publishing
 - [ ] Docker image
+- [ ] More locales (ES, DE, PL, ...)
 
 ---
 
 ## 📄 License
 
-[MIT](LICENSE) — use it, modify it, share it.
+[GPL v3](LICENSE) with additional terms under Section 7:
+
+- **Attribution required** — original author [adminpb](https://github.com/adminpb) \<adminpb@ukr.net\> must be credited in all copies and derivatives
+- **🇷🇺 Russia restriction** — use of this software within the Russian Federation, by RF citizens, or by RF-registered entities is expressly prohibited
+
+Free and open source for everyone else. See [LICENSE](LICENSE) for full details.
 
 ---
 
@@ -212,18 +242,18 @@ Once connected, you can ask your AI assistant:
 
 ### Що це?
 
-**Nightscout MCP** — це сервер [Model Context Protocol](https://modelcontextprotocol.io/), який з'єднує ваш [Nightscout](https://nightscout.github.io/) з AI-асистентами. Запитуйте про глюкозу природною мовою — AI отримує структурований доступ до показників, лікування, профілів та статистики.
+**Nightscout MCP** — це сервер [Model Context Protocol](https://modelcontextprotocol.io/), який з'єднує ваш [Nightscout](https://nightscout.github.io/) з AI-асистентами. Запитуйте про глюкозу природною мовою — AI отримує структурований доступ до показників, лікування, профілів, статистики та аналізу патернів.
 
 > *«Який у мене TIR за останній тиждень?»*
 > *«Як піца вплинула на глюкозу?»*
-> *«Покажи всі гіпо за 3 дні»*
+> *«Знайди патерни в нічних показниках»*
 > *«Порівняй дні з тренуванням і без»*
 
 ### Швидкий старт
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/nightscout-mcp.git
-cd nightscout-mcp
+git clone https://github.com/adminpb/Nightscout-MCP.git
+cd Nightscout-MCP
 npm install
 npm run build
 ```
@@ -247,17 +277,34 @@ npm run build
 }
 ```
 
-### Інструменти (Tools)
+### Інструменти
+
+#### Читання даних
 
 | Інструмент | Опис |
 |:-----------|:-----|
 | **`get_current_glucose`** | Поточна глюкоза + тренд ↗, дельта, вік показника |
 | **`get_glucose_history`** | Історія SGV за будь-який період |
-| **`get_statistics`** | TIR, середня, HbA1c, GMI, SD, CV, час у діапазонах |
 | **`get_treatments`** | Болюси, вуглеводи, нотатки, вправи |
 | **`get_profile`** | Профіль: ISF, ICR, базальні рати, цільові діапазони |
 | **`get_device_status`** | Помпа, сенсор, IOB, COB, батарея |
+
+#### Аналітика
+
+| Інструмент | Опис |
+|:-----------|:-----|
+| **`get_statistics`** | TIR, середня, HbA1c, GMI, SD, CV, час у діапазонах |
 | **`get_daily_report`** | Повний звіт за день |
+| **`detect_patterns`** | Розпізнавання патернів: нічні гіпо, феномен світанку, постпрандіальні піки, варіабельність |
+
+#### Запис даних
+
+| Інструмент | Опис |
+|:-----------|:-----|
+| **`add_treatment`** | Додати інсулін, вуглеводи, вправу, заміну катетера |
+| **`add_note`** | Швидка нотатка з відміткою часу |
+
+> Запис потребує `NIGHTSCOUT_READONLY=false`.
 
 ### Шаблони запитів (Prompts)
 
@@ -290,6 +337,15 @@ npm run build
 Встановіть `NIGHTSCOUT_LOCALE=uk` для українських статусів та повідомлень. Назви інструментів залишаються англійською для сумісності.
 
 Хочете додати свою мову? Створіть об'єкт перекладу в `src/i18n/index.ts` за інтерфейсом `TranslationStrings`.
+
+### Ліцензія
+
+[GPL v3](LICENSE) з додатковими умовами (Секція 7):
+
+- **Обов'язкове зазначення автора** — оригінальний автор [adminpb](https://github.com/adminpb) \<adminpb@ukr.net\> має бути вказаний у всіх копіях та похідних роботах
+- **🇷🇺 Обмеження для РФ** — використання цього ПЗ на території Російської Федерації, громадянами РФ або юридичними особами, зареєстрованими в РФ, суворо заборонено
+
+Безкоштовний відкритий код для всіх інших. Деталі в [LICENSE](LICENSE).
 
 </details>
 

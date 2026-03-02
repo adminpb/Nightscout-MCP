@@ -1,21 +1,68 @@
-MIT License
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
 
-Copyright (c) 2026 Volodymyr
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+                            Preamble
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  [Full GPL v3 text available at https://www.gnu.org/licenses/gpl-3.0.txt]
+
+                     ADDITIONAL TERMS
+
+  In accordance with Section 7 of the GNU General Public License v3,
+the following additional terms apply to this software:
+
+  1. ATTRIBUTION REQUIREMENT
+
+     All copies, modified versions, and derivative works of this
+     software must retain the following attribution in all source
+     files, documentation, and user-facing materials:
+
+       Original author: adminpb <adminpb@ukr.net>
+       Repository: https://github.com/adminpb/Nightscout-MCP
+
+     This attribution requirement applies regardless of the extent
+     of modification.
+
+  2. TERRITORIAL AND PERSONAL RESTRICTION
+
+     Use, copying, modification, distribution, or any other
+     exploitation of this software, in whole or in part, is
+     expressly prohibited:
+
+     a) Within the territory of the Russian Federation;
+     b) By citizens or permanent residents of the Russian Federation,
+        regardless of their current location;
+     c) By any legal entities registered or headquartered in the
+        Russian Federation;
+     d) By any organizations or individuals acting on behalf of or
+        for the benefit of entities described in (a)-(c).
+
+     This restriction applies to all versions, forks, derivative
+     works, and any code derived from this software.
+
+  These additional terms are authorized under Section 7 of GPL v3
+  and are binding on all recipients of this software.
+
+                     END OF ADDITIONAL TERMS
+
+---
+
+Copyright (c) 2026 adminpb <adminpb@ukr.net>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
