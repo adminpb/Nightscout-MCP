@@ -101,6 +101,10 @@ Add to your MCP client config (e.g. `claude_desktop_config.json`):
 | **`analyze_meal`** | Automatic post-meal analysis: peak, time-to-peak, rise, recovery, bolus assessment |
 | **`overnight_analysis`** | Detailed overnight report: stability, drift, dawn phenomenon, basal adequacy |
 | **`a1c_estimator`** | Project future HbA1c based on CGM trends and optional last lab result |
+| **`weekly_comparison`** | One-call this week vs last week with improvement indicators |
+| **`insulin_sensitivity_check`** | Real-world ISF analysis from correction boluses vs profile |
+| **`carb_ratio_check`** | Real-world ICR analysis from meal boluses vs profile |
+| **`compression_low_analysis`** | Detect false lows from sensor compression during sleep |
 | **`export_csv`** | Export glucose + treatments as CSV for doctors or spreadsheets |
 
 ### Writing Data
@@ -202,6 +206,10 @@ src/
     ├── glucose_at_time.ts
     ├── a1c_estimator.ts
     ├── export_csv.ts
+    ├── weekly_comparison.ts
+    ├── insulin_sensitivity_check.ts
+    ├── carb_ratio_check.ts
+    ├── compression_low_analysis.ts
     ├── add_treatment.ts
     └── add_note.ts
 ```
@@ -222,6 +230,12 @@ Once connected, you can ask your AI assistant:
 "Detect patterns in my last 14 days"
 "Compare my glucose on workout days vs rest days"
 "Are my basal rates set correctly based on overnight patterns?"
+"Is my ISF accurate? Check correction bolus data"
+"Am I bolusing enough for meals? Check my carb ratios"
+"How am I doing this week compared to last?"
+"Are my nighttime lows real or compression artifacts?"
+"Estimate my HbA1c for my lab appointment on March 16"
+"Export my last 2 weeks as CSV for my doctor"
 "Log 45g carbs and 4U insulin for lunch"
 ```
 
@@ -239,7 +253,11 @@ Once connected, you can ask your AI assistant:
 - [x] `find_events` / `glucose_at_time` — search and lookup
 - [x] `a1c_estimator` — future HbA1c projection
 - [x] `export_csv` — data export for doctors
-- [ ] API response caching with TTL
+- [x] API response caching with TTL
+- [x] `weekly_comparison` — auto this-week vs last-week
+- [x] `insulin_sensitivity_check` — real ISF from correction data
+- [x] `carb_ratio_check` — real ICR from meal data
+- [x] `compression_low_analysis` — false low detection
 - [ ] npm package publishing
 - [ ] Docker image
 - [ ] More locales (ES, DE, PL, ...)
@@ -322,6 +340,10 @@ npm run build
 | **`analyze_meal`** | Аналіз після їжі: пік, час до піку, підйом, відновлення, оцінка болюсу |
 | **`overnight_analysis`** | Нічний звіт: стабільність, дрейф, феномен світанку, оцінка базалу |
 | **`a1c_estimator`** | Прогноз HbA1c на дату аналізу на основі CGM трендів |
+| **`weekly_comparison`** | Цей тиждень vs минулий з індикаторами покращення |
+| **`insulin_sensitivity_check`** | Реальна ISF з корекційних болюсів vs профіль |
+| **`carb_ratio_check`** | Реальний ICR з їжі vs профіль |
+| **`compression_low_analysis`** | Виявлення хибних лоу від компресії сенсора під час сну |
 | **`export_csv`** | Експорт глюкози + лікування в CSV для лікаря або Excel |
 
 #### Запис даних

@@ -1,6 +1,6 @@
 {
   "name": "nightscout-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Model Context Protocol server for Nightscout — real-time CGM data, treatments, statistics, pattern detection, and analytics for AI assistants",
   "type": "module",
   "main": "dist/index.js",

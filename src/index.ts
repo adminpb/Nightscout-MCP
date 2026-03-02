@@ -26,6 +26,10 @@ import * as analyzeMeal from "./tools/analyze_meal.js";
 import * as overnightAnalysis from "./tools/overnight_analysis.js";
 import * as exportCsv from "./tools/export_csv.js";
 import * as a1cEstimator from "./tools/a1c_estimator.js";
+import * as weeklyComparison from "./tools/weekly_comparison.js";
+import * as insulinSensitivityCheck from "./tools/insulin_sensitivity_check.js";
+import * as carbRatioCheck from "./tools/carb_ratio_check.js";
+import * as compressionLowAnalysis from "./tools/compression_low_analysis.js";
 
 // Load config and create client
 const config = loadConfig();
@@ -34,7 +38,7 @@ const client = new NightscoutClient(config);
 // Create MCP server
 const server = new McpServer({
   name: "nightscout-mcp",
-  version: "0.3.0",
+  version: "0.4.0",
   description: "MCP server for Nightscout CGM data — glucose readings, treatments, statistics, and analytics",
 });
 
@@ -292,6 +296,67 @@ server.tool(
     try {
       const parsed = a1cEstimator.schema.parse(params);
       const result = await a1cEstimator.execute(client, config, parsed);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+// --- Smart analytics ---
+
+server.tool(
+  weeklyComparison.definition.name,
+  weeklyComparison.definition.description,
+  weeklyComparison.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const result = await weeklyComparison.execute(client, config, params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  insulinSensitivityCheck.definition.name,
+  insulinSensitivityCheck.definition.description,
+  insulinSensitivityCheck.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const parsed = insulinSensitivityCheck.schema.parse(params);
+      const result = await insulinSensitivityCheck.execute(client, config, parsed);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  carbRatioCheck.definition.name,
+  carbRatioCheck.definition.description,
+  carbRatioCheck.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const parsed = carbRatioCheck.schema.parse(params);
+      const result = await carbRatioCheck.execute(client, config, parsed);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  compressionLowAnalysis.definition.name,
+  compressionLowAnalysis.definition.description,
+  compressionLowAnalysis.definition.inputSchema.properties,
+  async (params) => {
+    try {
+      const parsed = compressionLowAnalysis.schema.parse(params);
+      const result = await compressionLowAnalysis.execute(client, config, parsed);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     } catch (error) {
       return { content: [{ type: "text", text: `Error: ${(error as Error).message}` }], isError: true };

@@ -1,8 +1,57 @@
 // Nightscout API Client
 // Handles all HTTP communication with Nightscout REST API v1
+// Includes in-memory cache with configurable TTL
 
 import { NightscoutConfig } from "./config.js";
 import crypto from "crypto";
+
+// === Cache ===
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+class ApiCache {
+  private store = new Map<string, CacheEntry<unknown>>();
+  private defaultTtl: number;
+
+  constructor(defaultTtlMs: number = 30_000) {
+    this.defaultTtl = defaultTtlMs;
+  }
+
+  get<T>(key: string): T | null {
+    const entry = this.store.get(key) as CacheEntry<T> | undefined;
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > entry.ttl) {
+      this.store.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+
+  set<T>(key: string, data: T, ttlMs?: number): void {
+    this.store.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl: ttlMs ?? this.defaultTtl,
+    });
+  }
+
+  invalidate(prefix?: string): void {
+    if (!prefix) {
+      this.store.clear();
+      return;
+    }
+    for (const key of this.store.keys()) {
+      if (key.startsWith(prefix)) this.store.delete(key);
+    }
+  }
+
+  get size(): number {
+    return this.store.size;
+  }
+}
 
 export interface SGVEntry {
   _id: string;
@@ -92,11 +141,28 @@ const DIRECTION_ARROWS: Record<string, string> = {
   "RATE OUT OF RANGE": "⚠",
 };
 
+// Cache TTL constants
+const CACHE_TTL = {
+  CURRENT: 15_000,      // 15s — current glucose changes often
+  ENTRIES: 60_000,      // 60s — historical entries
+  TREATMENTS: 60_000,   // 60s — treatments
+  PROFILE: 300_000,     // 5min — profile rarely changes
+  STATUS: 300_000,      // 5min — server status
+  DEVICE: 30_000,       // 30s — device status
+};
+
 export class NightscoutClient {
   private config: NightscoutConfig;
+  private cache: ApiCache;
 
   constructor(config: NightscoutConfig) {
     this.config = config;
+    this.cache = new ApiCache();
+  }
+
+  /** Invalidate cache after writes */
+  invalidateCache(): void {
+    this.cache.invalidate();
   }
 
   // Convert mg/dL to mmol/L
@@ -169,7 +235,7 @@ export class NightscoutClient {
     return response.json() as Promise<T>;
   }
 
-  // ===== DATA METHODS =====
+  // ===== DATA METHODS (with caching) =====
 
   // Get latest SGV entries
   async getEntries(
@@ -177,6 +243,10 @@ export class NightscoutClient {
     dateFrom?: string,
     dateTo?: string
   ): Promise<SGVEntry[]> {
+    const cacheKey = `entries:${count}:${dateFrom || ""}:${dateTo || ""}`;
+    const cached = this.cache.get<SGVEntry[]>(cacheKey);
+    if (cached) return cached;
+
     const params: Record<string, string | number> = { count };
 
     if (dateFrom || dateTo) {
@@ -186,11 +256,13 @@ export class NightscoutClient {
       if (dateTo) dateField["$lte"] = new Date(dateTo).getTime();
       findQuery["date"] = dateField;
       params["find"] = JSON.stringify(findQuery);
-      // When filtering by date, get more entries
-      if (count === 1) params.count = 288; // ~24h at 5min intervals
+      if (count === 1) params.count = 288;
     }
 
-    return this.request<SGVEntry[]>("/api/v1/entries/sgv.json", params);
+    const result = await this.request<SGVEntry[]>("/api/v1/entries/sgv.json", params);
+    const ttl = count <= 2 ? CACHE_TTL.CURRENT : CACHE_TTL.ENTRIES;
+    this.cache.set(cacheKey, result, ttl);
+    return result;
   }
 
   // Get treatments
@@ -200,6 +272,10 @@ export class NightscoutClient {
     dateTo?: string,
     eventType?: string
   ): Promise<Treatment[]> {
+    const cacheKey = `treatments:${count}:${dateFrom || ""}:${dateTo || ""}:${eventType || ""}`;
+    const cached = this.cache.get<Treatment[]>(cacheKey);
+    if (cached) return cached;
+
     const params: Record<string, string | number> = { count };
 
     if (dateFrom || dateTo || eventType) {
@@ -214,22 +290,37 @@ export class NightscoutClient {
       params["find"] = JSON.stringify(findQuery);
     }
 
-    return this.request<Treatment[]>("/api/v1/treatments.json", params);
+    const result = await this.request<Treatment[]>("/api/v1/treatments.json", params);
+    this.cache.set(cacheKey, result, CACHE_TTL.TREATMENTS);
+    return result;
   }
 
   // Get active profile
   async getProfile(): Promise<Profile[]> {
-    return this.request<Profile[]>("/api/v1/profile.json");
+    const cached = this.cache.get<Profile[]>("profile");
+    if (cached) return cached;
+    const result = await this.request<Profile[]>("/api/v1/profile.json");
+    this.cache.set("profile", result, CACHE_TTL.PROFILE);
+    return result;
   }
 
   // Get device status (latest)
   async getDeviceStatus(count: number = 1): Promise<DeviceStatus[]> {
-    return this.request<DeviceStatus[]>("/api/v1/devicestatus.json", { count });
+    const cacheKey = `devicestatus:${count}`;
+    const cached = this.cache.get<DeviceStatus[]>(cacheKey);
+    if (cached) return cached;
+    const result = await this.request<DeviceStatus[]>("/api/v1/devicestatus.json", { count });
+    this.cache.set(cacheKey, result, CACHE_TTL.DEVICE);
+    return result;
   }
 
   // Get server status
   async getStatus(): Promise<Record<string, unknown>> {
-    return this.request<Record<string, unknown>>("/api/v1/status.json");
+    const cached = this.cache.get<Record<string, unknown>>("status");
+    if (cached) return cached;
+    const result = await this.request<Record<string, unknown>>("/api/v1/status.json");
+    this.cache.set("status", result, CACHE_TTL.STATUS);
+    return result;
   }
 
   // ===== WRITE METHODS =====
@@ -266,6 +357,9 @@ export class NightscoutClient {
         `Failed to add treatment: ${response.status} ${response.statusText}`
       );
     }
+
+    // Invalidate treatments cache after write
+    this.cache.invalidate("treatments");
 
     return response.json();
   }
