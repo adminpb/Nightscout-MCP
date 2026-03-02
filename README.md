@@ -87,6 +87,8 @@ Add to your MCP client config (e.g. `claude_desktop_config.json`):
 | **`get_treatments`** | Insulin boluses, carb entries, notes, exercise — with summaries |
 | **`get_profile`** | Active profile: ISF, ICR, basal rates, target ranges, DIA |
 | **`get_device_status`** | Pump/sensor/loop status, IOB, COB, battery, predictions |
+| **`glucose_at_time`** | Glucose at a specific moment: "what was my BG at 3 AM?" |
+| **`find_events`** | Search treatments/notes by text or type: "when did I change my sensor?" |
 
 ### Analytics
 
@@ -94,7 +96,12 @@ Add to your MCP client config (e.g. `claude_desktop_config.json`):
 |:-----|:------------|
 | **`get_statistics`** | TIR, average glucose, estimated HbA1c, GMI, SD, CV, time-in-ranges |
 | **`get_daily_report`** | Full day summary: glucose stats + treatments + notable events |
-| **`detect_patterns`** | Automatic pattern recognition: overnight lows, dawn phenomenon, post-meal spikes, day-to-day variability |
+| **`detect_patterns`** | Automatic pattern recognition: overnight lows, dawn phenomenon, post-meal spikes, variability |
+| **`compare_periods`** | Side-by-side comparison of two periods: training vs rest, this week vs last |
+| **`analyze_meal`** | Automatic post-meal analysis: peak, time-to-peak, rise, recovery, bolus assessment |
+| **`overnight_analysis`** | Detailed overnight report: stability, drift, dawn phenomenon, basal adequacy |
+| **`a1c_estimator`** | Project future HbA1c based on CGM trends and optional last lab result |
+| **`export_csv`** | Export glucose + treatments as CSV for doctors or spreadsheets |
 
 ### Writing Data
 
@@ -188,6 +195,13 @@ src/
     ├── get_device_status.ts
     ├── get_daily_report.ts
     ├── detect_patterns.ts
+    ├── compare_periods.ts
+    ├── analyze_meal.ts
+    ├── overnight_analysis.ts
+    ├── find_events.ts
+    ├── glucose_at_time.ts
+    ├── a1c_estimator.ts
+    ├── export_csv.ts
     ├── add_treatment.ts
     └── add_note.ts
 ```
@@ -220,6 +234,12 @@ Once connected, you can ask your AI assistant:
 - [x] Localization (EN / UK)
 - [x] `detect_patterns` — overnight lows, dawn phenomenon, post-meal spikes, variability
 - [x] `add_treatment` / `add_note` — write operations
+- [x] `compare_periods` — side-by-side period comparison
+- [x] `analyze_meal` / `overnight_analysis` — deep analytics
+- [x] `find_events` / `glucose_at_time` — search and lookup
+- [x] `a1c_estimator` — future HbA1c projection
+- [x] `export_csv` — data export for doctors
+- [ ] API response caching with TTL
 - [ ] npm package publishing
 - [ ] Docker image
 - [ ] More locales (ES, DE, PL, ...)
@@ -288,6 +308,8 @@ npm run build
 | **`get_treatments`** | Болюси, вуглеводи, нотатки, вправи |
 | **`get_profile`** | Профіль: ISF, ICR, базальні рати, цільові діапазони |
 | **`get_device_status`** | Помпа, сенсор, IOB, COB, батарея |
+| **`glucose_at_time`** | Глюкоза в конкретний момент: «яка була о 3 ночі?» |
+| **`find_events`** | Пошук по записах: «коли міняв сенсор?», «знайди всі записи про каву» |
 
 #### Аналітика
 
@@ -295,7 +317,12 @@ npm run build
 |:-----------|:-----|
 | **`get_statistics`** | TIR, середня, HbA1c, GMI, SD, CV, час у діапазонах |
 | **`get_daily_report`** | Повний звіт за день |
-| **`detect_patterns`** | Розпізнавання патернів: нічні гіпо, феномен світанку, постпрандіальні піки, варіабельність |
+| **`detect_patterns`** | Патерни: нічні гіпо, феномен світанку, постпрандіальні піки, варіабельність |
+| **`compare_periods`** | Порівняння двох періодів: тренування vs відпочинок, цей тиждень vs минулий |
+| **`analyze_meal`** | Аналіз після їжі: пік, час до піку, підйом, відновлення, оцінка болюсу |
+| **`overnight_analysis`** | Нічний звіт: стабільність, дрейф, феномен світанку, оцінка базалу |
+| **`a1c_estimator`** | Прогноз HbA1c на дату аналізу на основі CGM трендів |
+| **`export_csv`** | Експорт глюкози + лікування в CSV для лікаря або Excel |
 
 #### Запис даних
 
